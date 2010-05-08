@@ -1,13 +1,16 @@
 var id = null;
-var players = 100;
+var players = 0;
+
 
 function longPollForPlayerCount() {
     $.ajax({cache: false, type:"GET", url:"/player-count/", dataType:"json",
 		data:{ players:players, id:id},
 		error: function() {
+		console.log(error);
 		setTimeout(longPollForPlayerCount, 10*1000);
 	    },
 		success: function(data) {
+		console.log(data);
 		players = data.players;
 		$("#playerCount").text(players + " people rating Digg comments!");
 		longPollForPlayerCount();

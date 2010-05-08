@@ -13,7 +13,7 @@ function notFound(req, res) {
 			  , ["Content-Length", NOT_FOUND.length]
 			  ]);
     res.write(NOT_FOUND);
-    res.close();
+    res.end();
 }
 
 var getMap = {};
@@ -30,7 +30,7 @@ var server = createServer(function (req, res) {
 				       , ["Content-Length", body.length]
 				       ]);
 		res.write(body);
-		res.close();
+		res.end();
 	    };
 
 	    res.simpleJSON = function (code, obj) {
@@ -39,7 +39,7 @@ var server = createServer(function (req, res) {
 				       , ["Content-Length", body.length]
 				       ]);
 		res.write(body);
-		res.close();
+		res.end();
 	    };
 
 	    handler(req, res);
@@ -51,7 +51,7 @@ fu.listen = function (port, host) {
     sys.puts("Server at http://" + (host || "127.0.0.1") + ":" + port.toString() + "/");
 };
 
-fu.close = function () { server.close(); };
+fu.close = function () { server.end(); };
 
 function extname (path) {
     var index = path.lastIndexOf(".");
@@ -91,7 +91,7 @@ fu.staticHandler = function (filename) {
 	loadResponseData(function () {
 		res.sendHeader(200, headers);
 		res.write(body, encoding);
-		res.close();
+		res.end();
 	    });
     }
 };

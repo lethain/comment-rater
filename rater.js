@@ -1,27 +1,40 @@
-var http = require("http"),
+var PORT = 8000,
+    HOST = "localhost",
     fu = require("./fu"),
-    views = require("./views"),
-    urlpattern = require("../workframe.js/urlpattern");
+    sys = require("sys"),
+    players = [],
+    player_counter = 0,
+    player_callbacks = [];
 
-urlpattern.default_404 = views.default_404;   
-urlpattern.patterns = [
-		       //[/^\/project\/view\/([\w-_]+)\/$/, views.view_project],
-		       //[/^\/static\//, views.static_files],
-		       [/^\/static\/cr.css$/, fu.staticHandler("static/cr.css")],
-		       [/^\/static\/cr.js$/, fu.staticHandler("static/cr.js")],
-		       [/^\/player-count\/$/, views.player_count],
-		       [/^\/join\/$/, views.join],
-		       [/^\/leave\/$/, views.leave],
-		       [/^\/about\/$/, fu.staticHandler("static/about.html")],
-		       [/^\/$/, fu.staticHandler("static/index.html")]
-		       ];
+var player_count = function(req, res) {
+    sys.puts("Players: " + JSON.stringify(players));
+    var callback = function() {
+	    res.simpleJSON(200, {players: players.length});
+    };
+    player_callbacks.push(callback);
+};
 
-http.createServer(function(req, res) {
-	var data = "";
-	req.addListener('data', function(chunk) {
-		data += chunk;
-	    });
-	req.addListener('end', function() {
-		urlpattern.dispatch(req, res, data);
-	    });
-    }).listen(8000);
+var join = function(req, res) {
+    player_counter++;
+    players.push(player_counter);
+    sys.puts("Player " + player_counter + " joined.");
+    sys.puts("Listeners: " + JSON.stringify(player_callbacks));
+    for(i=0; i<player_callbacks.length; i++) player_callbacks[i]();
+    player_callbacks = [];
+    res.simpleJSON(200, {"id": player_counter, players: players.length});
+}
+
+var leave = function(req, res) {
+    res.simpleJSON(200, {});
+}
+
+
+fu.listen(PORT, HOST);
+fu.get("/about/", fu.staticHandler("static/about.html"));
+fu.get("/", fu.staticHandler("static/index.html"));
+fu.get("/static/cr.css", fu.staticHandler("static/cr.css"));
+fu.get("/static/cr.js", fu.staticHandler("static/cr.js"));
+fu.get("/join/", join);
+fu.get("/leave/", leave);
+fu.get("/player-count/", player_count);
+
