@@ -4,10 +4,13 @@ var PORT = 8000,
     fu = require("./fu"),
     sys = require("sys"),
     qs = require("querystring"),
+    url = require("url"),
     players = [],
     player_counter = 0,
-    waiting_callbacks = [],
-    player_callbacks = [];
+    game_counter = 0,
+    games = {},
+    waiting_callbacks = [], // waiting for new game, have already clicked "start playing"
+    player_callbacks = []; // listening for changes to number of players playing
 
 setInterval(function () {
 	var now = new Date();
@@ -21,8 +24,35 @@ setInterval(function () {
 		    });
     }, 1000);
 
-var play = function(req, res) {
+var make_game = function(player1, player2) {
+    game_counter++;
+    sys.puts("Starting game " + game_counter);
+    sys.puts(JSON.stringify(player1));
+    sys.puts(JSON.stringify(player2));
+    games[game_counter] = {
+	id: game_counter,
+	score: 0,
+	questions: [],
+	players: [player1.player, player2.player],
+    };
+    sys.puts(JSON.stringify(games));
+    player1.func(game_counter, player2.player);
+    player2.func(game_counter, player1.player);
+}
 
+var play = function(req, res) {
+    sys.puts(req.url);
+    var player1_id = qs.parse(url.parse(req.url).query).id;
+    sys.puts("Player " + player1_id + " ready to play");
+    var cb = function(game_id, partner_id) {
+	sys.puts("GameId: " + game_id + ", PartnerId: " + partner_id);
+	res.simpleJSON(200, {id: player1_id,  partner: partner_id, game: game_id});
+    }
+    var callback1 = { player: player1_id, func: cb};
+    if (waiting_callbacks.length > 0)
+	make_game(callback1, waiting_callbacks.pop());
+    else
+	waiting_callbacks.push(callback1);
 }
 
 var player_count = function(req, res) {

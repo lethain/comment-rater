@@ -13,6 +13,16 @@ function longPollForPlayerCount() {
 		}
 		longPollForPlayerCount();
 	    }})};
+function playGame(event) {
+    event.preventDefault();
+    $.ajax({cache: false, type:"GET", url:"/play/", dataType:"json",
+		data:{ id: id},
+		error: function() { setTimeout(playGame, 10*2500); },
+		success: function(data) {
+		console.log(data);
+		if (data) $("p").text(data);		
+	    }})};
+
 $(document).ready(function() {
 	$(window).unload(function () {
 		jQuery.get("/leave/", {id: id}, function (data) { alert("leaving"); }, "json");
@@ -23,6 +33,7 @@ $(document).ready(function() {
 		$("#playerCount").text(players + " people rating Digg comments!");
 		longPollForPlayerCount();
 	    }, "json");
+	$("#play").click(playGame);
     });
 
 
