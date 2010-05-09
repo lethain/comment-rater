@@ -40,6 +40,10 @@ h2 {
 }
 
 
+#ft {
+    text-align: center;
+}
+
 // navigation menu...
 
 ul#nav { 
@@ -63,7 +67,7 @@ ul#nav li a {
  border-right: solid 1px #fff;
 }
 
-a:link, a:visited { color: #fff; }
+a:link, a:visited { color: #00f; }
 
 ul#nav li a:hover {
  color: #000;
