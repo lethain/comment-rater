@@ -4,7 +4,8 @@ var PORT = 8000,
     CYCLE_COMMENTS = 60 * 1000,
     fu = require("./fu"),
     fs = require("fs"),
-    log = fs.createWriteStream("rater.log"),
+    log = fs.createWriteStream("answer.log"),
+    score_log = fs.createWriteStream("score.log"),
     sys = require("sys"),
     qs = require("querystring"),
     http = require('http'),
@@ -81,6 +82,7 @@ var make_game = function(player1, player2) {
 		    sys.puts("gameover_callback!");
 		    obj();
 		});
+	    score_log.write(game_id + "," + g.players[0] + "," + g.players[1] + "," + g.score + "\n");
 	}, g.duration * 1000);
 
 };
@@ -138,7 +140,7 @@ var finish = function(req, res) {
     var g = games[game_id];
     g.gameover_callbacks.push(function() {
 	    res.simpleJSON(200, {id: game_id, final_score:g.score});
-	});
+	})
 }
 
 var play = function(req, res) {
