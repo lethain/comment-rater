@@ -86,7 +86,7 @@ var make_game = function(player1, player2) {
 };
 
 var make_comment = function() {
-    var c = {callbacks:[], answers:[], tags:["Smart", "Funny", "Inappropriate", "Incoherent", "Quirky"]};
+    var c = {callbacks:[], answers:[], tags:["Smart", "Funny", "Inappropriate", "Incoherent", "Conspiracy Theorist"]};
     if (comments.length > 0) {
 	var pos = Math.floor(Math.random()*comments.length);
 	var digg_comment = comments[pos];
