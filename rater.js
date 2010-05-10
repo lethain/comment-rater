@@ -3,6 +3,8 @@ var PORT = 8000,
     SESSION_TIMEOUT = 60 * 1000,
     CYCLE_COMMENTS = 60 * 1000,
     fu = require("./fu"),
+    fs = require("fs"),
+    log = fs.createWriteStream("rater.log"),
     sys = require("sys"),
     qs = require("querystring"),
     http = require('http'),
@@ -16,11 +18,9 @@ var PORT = 8000,
     waiting_callbacks = [], // waiting for new game, have already clicked "start playing"
     player_callbacks = []; // listening for changes to number of players playing
 
-sys.puts(last_retrieval_date);
-
 var retrieveDiggComments = function() {
-    var google = http.createClient(80, 'services.digg.com');
-    var request = google.request('GET', '/1.0/endpoint?method=comment.getPopular&type=json&count=10&min_date='+last_retrieval_date,
+    var digg = http.createClient(80, 'services.digg.com');
+    var request = digg.request('GET', '/1.0/endpoint?method=comment.getPopular&type=json&count=10&min_date='+last_retrieval_date,
 {'User-Agent':'Mozilla/5.0 (Macintosh; U; Intel Mac OS X 10_6_3; en-us) AppleWebKit/531.22.7 (KHTML, like Gecko) Version/4.0.5 Safari/531.22.7',
  'host': 'services.digg.com'
 	});
@@ -120,6 +120,9 @@ var comment = function(req, res) {
 	    if (q.answers[0] == q.answers[1]) g.score++;
 	    q.callbacks.forEach(function(obj) { obj(g.score); });
 	    q.callbacks = null;
+	    var log_str = game_id+","+g.players[0]+","+g.players[1]+","+question_id+","+qs.unescape(q.answers[0])+","+qs.unescape(q.answers[1])+"\n";
+	    log.write(log_str);
+
 	} else {
 	    q.callbacks.push(function(score) {
 		    res.simpleJSON(200, { answers:q.answers, score:score });
