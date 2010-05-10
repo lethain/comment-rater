@@ -101,7 +101,7 @@ function endGame() {
 
 $(document).ready(function() {
 	$(window).unload(function () {
-		jQuery.get("/leave/", {id: id}, function (data) { alert("leaving"); }, "json");
+		jQuery.get("/leave/", {id: id}, function (data) { }, "json");
 	    });
 	jQuery.get("/join/", {}, function (data) { 
 		id = data.id;
