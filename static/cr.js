@@ -58,9 +58,22 @@ function getComment(n) {
 		$("#comment-tags").replaceWith($(tags));
 		$("a", "#comment-tags").click(function(event) {
 			event.preventDefault();
+			var parts = this.href.split("/");
+			var answer = parts[parts.length-1];
 			$.ajax({cache: false, type:"GET", url:"/comment/", dataType:"json",
-			       data:{ game_id:game.id, question_id:n, answer:this.href },
+			       data:{ game_id:game.id, question_id:n, answer:answer },
 			       success: function(data) {
+				    var s = "<p>Answers for Comment " + n + " were ";
+				    for(i=0; i<data.answers.length; i++) {
+					if (i > 0) s += ", ";
+					s += data.answers[i];
+				    }
+				    if (data.score != game.score) {
+					s += ". <b>Score is " + data.score + "!</b>";
+				    }
+				    game.score = data.score;
+				    s += "</p>";
+				    $("#history").prepend($(s));
 				   getComment(n+1);
 				}})});
 	    }})};

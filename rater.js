@@ -73,15 +73,15 @@ var comment = function(req, res) {
     if (answer) {
 	q.answers.push(answer);
 	if (q.callbacks.length > 0) {
-	    q.callbacks.push(function() {
-		    res.simpleJSON(200, { answers:q.answers });
+	    q.callbacks.push(function(score) {
+		    res.simpleJSON(200, { answers:q.answers, score:score });
 		});
-	    q.callbacks.forEach(function(obj) { obj(); });
+	    if (q.answers[0] == q.answers[1]) g.score++;
+	    q.callbacks.forEach(function(obj) { obj(g.score); });
 	    q.callbacks = null;
-				
 	} else {
-	    q.callbacks.push(function() {
-		    res.simpleJSON(200, { answers:q.answers });
+	    q.callbacks.push(function(score) {
+		    res.simpleJSON(200, { answers:q.answers, score:score });
 		});
 	}
     } else {
