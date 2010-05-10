@@ -1,16 +1,50 @@
 var PORT = 8000,
     HOST = "localhost",
     SESSION_TIMEOUT = 60 * 1000,
+    CYCLE_COMMENTS = 60 * 1000,
     fu = require("./fu"),
     sys = require("sys"),
     qs = require("querystring"),
+    http = require('http'),
     url = require("url"),
     players = [],
     player_counter = 0,
     game_counter = 0,
     games = {},
+    comments = [],
+    last_retrieval_date = (parseInt((new Date()).getTime() / 1000)) - 600;
     waiting_callbacks = [], // waiting for new game, have already clicked "start playing"
     player_callbacks = []; // listening for changes to number of players playing
+
+sys.puts(last_retrieval_date);
+
+var retrieveDiggComments = function() {
+    var google = http.createClient(80, 'services.digg.com');
+    var request = google.request('GET', '/1.0/endpoint?method=comment.getPopular&type=json&count=10&min_date='+last_retrieval_date,
+{'User-Agent':'Mozilla/5.0 (Macintosh; U; Intel Mac OS X 10_6_3; en-us) AppleWebKit/531.22.7 (KHTML, like Gecko) Version/4.0.5 Safari/531.22.7',
+ 'host': 'services.digg.com'
+	});
+    request.addListener('response', function (response) {
+	    response.setEncoding('utf8');
+	    var data = "";
+	    response.addListener('data', function (chunk) {
+		    data += chunk;
+		});
+	    response.addListener('end', function(){
+		    var json = JSON.parse(data);
+		    last_retrieval_date = json.timestamp;
+		    sys.puts("last_retrieval_date: " + json.timestamp);
+		    json.comments.forEach(function(comment) {
+			    comments.push({text:comment.content, id:comment.id});
+			});
+		    sys.puts("number of comments: " + comments.length);
+		});
+	});
+    request.end();
+}
+
+retrieveDiggComments();
+setInterval(retrieveDiggComments, CYCLE_COMMENTS);
 
 setInterval(function () {
 	var now = new Date();
@@ -52,10 +86,17 @@ var make_game = function(player1, player2) {
 };
 
 var make_comment = function() {
-    return { comment:"This is a random comment... " + new Date(),
-	     tags:["Smart", "Funny", "Inappropriate", "Incoherent", "Quirky"],
-	     callbacks:[],
-	     answers:[]};
+    var c = {callbacks:[], answers:[], tags:["Smart", "Funny", "Inappropriate", "Incoherent", "Quirky"]};
+    if (comments.length > 0) {
+	var pos = Math.floor(Math.random()*comments.length);
+	var digg_comment = comments[pos];
+	c.comment = digg_comment.text;
+	c.comment_id = digg_comment.id;
+    } else {
+	c.comment = "This is a random comment... " + new Date();
+	c.comment_id = 0;
+    }
+    return c;
 }
 
 var comment = function(req, res) {
