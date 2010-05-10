@@ -32,7 +32,7 @@ var make_game = function(player1, player2) {
     var g  = {
 	id: game_counter,
 	start: new Date(),
-	duration: 60,
+	duration: 30,
 	score: 0,
 	questions: [],
 	players: [player1.player, player2.player],

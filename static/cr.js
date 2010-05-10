@@ -88,7 +88,8 @@ function endGame() {
 		} else {
 		    $("#title").text("We couldn't calculate your final score. We suck. Epic fail. Sorry :-(");
 		}
-		$("#comment").replaceWith($("<div id=\"comment\"><a href=\"#\" id=\"play\">Play again? (We highly encourage it, but it isn't exactly required...)</a></p></div>")).click(playGame);
+		$("#comment").replaceWith($("<div id=\"comment\"><a href=\"#\" id=\"play\">Play again? (We highly encourage it, but it isn't exactly required...)</a></p></div>"));
+		$("#play").click(playGame);
 		if (durationInterval) {
 		    clearInterval(durationInterval);
 		    durationInterval = null;
