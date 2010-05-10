@@ -35,6 +35,13 @@ h2 {
   border: 1px solid;
 }
 
+#comment-text, #comment-tags, #history {
+  padding: 0.5em;
+  width: 36.5em;
+  margin: 0.5em;
+  border: 1px solid;
+}
+
 #options {
 
 }

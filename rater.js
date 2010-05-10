@@ -51,7 +51,22 @@ var make_game = function(player1, player2) {
 
 };
 
+var make_comment = function() {
+    return { comment:"This is a random comment...",
+	    tags:["Smart", "Funny", "Inappropriate", "Incoherent", "Quirky"]};
+}
+
 var comment = function(req, res) {
+    var game_id = qs.parse(url.parse(req.url).query).game_id;
+    var question_id = qs.parse(url.parse(req.url).query).question_id;
+    var g = games[game_id];
+    var q;
+    if (g.questions[question_id]) q = g.questions[question_id];
+    else {
+	q = make_comment();
+	g.questions[question_id] = q;
+    }
+    res.simpleJSON(200, {game_id: game_id, question_id: question_id, question:q});
        
 };
 	

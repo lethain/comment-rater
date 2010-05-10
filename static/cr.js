@@ -24,18 +24,31 @@ function playGame(event) {
 		success: function(data) {
 		game = data.game;
 		endGame();
-		$("h2").text("Starting new game... (" + game.duration + " seconds left)");
+		$("#title").text("Starting new game... (" + game.duration + " seconds left)");
+		$("#comment").replaceWith($("<div id='comment'><h2>Read this comment</h2><div id='comment-text'></div><h2>Pick a tag</h2><div id='comment-tags'></div><h2>Work together</h2><div id='history'></div></div>"));
 		durationInterval = setInterval(function() {
 			if (game.duration > 0) {
 			    game.duration--;
-			    $("h2").text("Playing... (" + game.duration + " seconds left)");
+			    $("#title").text("Playing... (" + game.duration + " seconds left)");
 			} else {
 			    clearInterval(durationInterval);
 			    durationInterval = null;
-			    $("h2").text("Out of time!");
+			    $("#title").text("Out of time!");
 			}
 		    }, 1000);
-	    }})};
+	    }});
+    $("#title").text("Waiting for partner!");
+    $("#comment").text("A partner is going to come wisk you away, in just a second... just a second... please? Someone? Anyone?");
+};
+
+function getComment(n) {
+    $.ajax({type:"GET", url:"/comment/", dataType:"json",
+		data:{ game_id:game.id, question_id:n},
+		error: function() { setTimeout(function() { getComment(n); }, 1000) },
+		success: function(data) {
+		
+	    }});
+};
 
 function endGame() {
     $.ajax({cache: false, type:"GET", url:"/finish/", dataType:"json",
@@ -43,9 +56,9 @@ function endGame() {
 		error: function() { setTimeout(endGame, 5*1000); },
 		success: function(data) {
 		if (data.final_score !== null) {
-		    $("h2").text("Final Score was " + data.final_score);
+		    $("#title").text("Final Score was " + data.final_score);
 		} else {
-		    $("h2").text("We couldn't calculate your final score. We suck. Epic fail. Sorry :-(");
+		    $("#title").text("We couldn't calculate your final score. We suck. Epic fail. Sorry :-(");
 		}
 		$("#comment").replaceWith($("<div id=\"comment\"><a href=\"#\" id=\"play\">Play again? (We highly encourage it, but it isn't exactly required...)</a></p></div>")).click(playGame);
 		if (durationInterval) {
