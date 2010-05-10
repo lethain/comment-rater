@@ -2,6 +2,8 @@ var PORT = 8000,
     HOST = "localhost",
     SESSION_TIMEOUT = 60 * 1000,
     CYCLE_COMMENTS = 60 * 1000,
+    COMMENT_STORAGE_THRESHOLD = 100, // retrieve comments when less than
+    COMMENT_REVIEW_THRESHOLD = 1, // remove comment after it has been reviewed this many times
     fu = require("./fu"),
     fs = require("fs"),
     log = fs.createWriteStream("answer.log"),
@@ -20,8 +22,15 @@ var PORT = 8000,
     player_callbacks = []; // listening for changes to number of players playing
 
 var retrieveDiggComments = function() {
-    var digg = http.createClient(80, 'services.digg.com');
-    var request = digg.request('GET', '/1.0/endpoint?method=comment.getPopular&type=json&count=10&min_date='+last_retrieval_date,
+    sys.puts("Comments before review: " + comments.length);
+    comments = comments.filter(function(comment) {
+	    return (comment.reviewed <= COMMENT_REVIEW_THRESHOLD);
+	});
+    sys.puts("Comments after review: " + comments.length);
+
+    if (comments.length < COMMENT_STORAGE_THRESHOLD) {
+	var digg = http.createClient(80, 'services.digg.com');
+	var request = digg.request('GET', '/1.0/endpoint?method=comment.getPopular&type=json&count=50&min_date='+last_retrieval_date,
 {'User-Agent':'Mozilla/5.0 (Macintosh; U; Intel Mac OS X 10_6_3; en-us) AppleWebKit/531.22.7 (KHTML, like Gecko) Version/4.0.5 Safari/531.22.7',
  'host': 'services.digg.com'
 	});
@@ -36,12 +45,15 @@ var retrieveDiggComments = function() {
 		    last_retrieval_date = json.timestamp;
 		    sys.puts("last_retrieval_date: " + json.timestamp);
 		    json.comments.forEach(function(comment) {
-			    comments.push({text:comment.content, id:comment.id});
+			    comments.push({text:comment.content, id:comment.id, reviewed:0});
 			});
 		    sys.puts("number of comments: " + comments.length);
 		});
 	});
     request.end();
+    }
+    
+
 }
 
 retrieveDiggComments();
@@ -82,16 +94,17 @@ var make_game = function(player1, player2) {
 		    sys.puts("gameover_callback!");
 		    obj();
 		});
-	    score_log.write(game_id + "," + g.players[0] + "," + g.players[1] + "," + g.score + "\n");
+	    score_log.write(g.id + "," + g.players[0] + "," + g.players[1] + "," + g.score + "\n");
 	}, g.duration * 1000);
 
 };
 
 var make_comment = function() {
-    var c = {callbacks:[], answers:[], tags:["Smart", "Funny", "Inappropriate", "Incoherent", "Conspiracy Theorist"]};
+    var c = {callbacks:[], answers:[], tags:["Truth!", "Funny", "Inappropriate", "WTF", "Conspiracy Theorist", "Spam"]};
     if (comments.length > 0) {
 	var pos = Math.floor(Math.random()*comments.length);
 	var digg_comment = comments[pos];
+	digg_comment.reviewed++;
 	c.comment = digg_comment.text;
 	c.comment_id = digg_comment.id;
     } else {

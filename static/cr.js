@@ -60,16 +60,19 @@ function getComment(n) {
 			event.preventDefault();
 			var parts = this.href.split("/");
 			var answer = parts[parts.length-1];
+			$("#comment-tags").replaceWith("<div id=\"comment-tags\"><p><b>"+unescape(answer)+"</b></p></div>");
+
+
 			$.ajax({cache: false, type:"GET", url:"/comment/", dataType:"json",
 			       data:{ game_id:game.id, question_id:n, answer:answer },
 			       success: function(data) {
-				    var s = "<p>Answers for Comment " + n + " were ";
+				    var s = "<p>Answers for Comment " + (n+1) + " were ";
 				    for(i=0; i<data.answers.length; i++) {
 					if (i > 0) s += ", ";
-					s += data.answers[i];
+					s += unescape(data.answers[i]);
 				    }
 				    if (data.score != game.score) {
-					s += ". <b>Score is " + data.score + "!</b>";
+					s += ".</p><p> <b>Score is " + data.score + "!</b>";
 				    }
 				    game.score = data.score;
 				    s += "</p>";
