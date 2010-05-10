@@ -32,7 +32,7 @@ var make_game = function(player1, player2) {
     var g  = {
 	id: game_counter,
 	start: new Date(),
-	duration: 5,
+	duration: 60,
 	score: 0,
 	questions: [],
 	players: [player1.player, player2.player],
@@ -52,13 +52,17 @@ var make_game = function(player1, player2) {
 };
 
 var make_comment = function() {
-    return { comment:"This is a random comment...",
-	    tags:["Smart", "Funny", "Inappropriate", "Incoherent", "Quirky"]};
+    return { comment:"This is a random comment... " + new Date(),
+	     tags:["Smart", "Funny", "Inappropriate", "Incoherent", "Quirky"],
+	     callbacks:[],
+	     answers:[]};
 }
 
 var comment = function(req, res) {
     var game_id = qs.parse(url.parse(req.url).query).game_id;
     var question_id = qs.parse(url.parse(req.url).query).question_id;
+    var answer = qs.parse(url.parse(req.url).query).answer;
+    sys.puts("Game: " + game_id + ", Question: " + question_id + ", Answer: " + answer);
     var g = games[game_id];
     var q;
     if (g.questions[question_id]) q = g.questions[question_id];
@@ -66,8 +70,23 @@ var comment = function(req, res) {
 	q = make_comment();
 	g.questions[question_id] = q;
     }
-    res.simpleJSON(200, {game_id: game_id, question_id: question_id, question:q});
-       
+    if (answer) {
+	q.answers.push(answer);
+	if (q.callbacks.length > 0) {
+	    q.callbacks.push(function() {
+		    res.simpleJSON(200, { answers:q.answers });
+		});
+	    q.callbacks.forEach(function(obj) { obj(); });
+	    q.callbacks = null;
+				
+	} else {
+	    q.callbacks.push(function() {
+		    res.simpleJSON(200, { answers:q.answers });
+		});
+	}
+    } else {
+	res.simpleJSON(200, {game_id: game_id, question_id: question_id, question:q});
+    }
 };
 	
 var finish = function(req, res) {
@@ -120,7 +139,6 @@ var leave = function(req, res) {
     sys.puts("Player " + id + " left.");
     res.simpleJSON(200, {});
 }
-
 
 fu.listen(PORT, HOST);
 fu.get("/about/", fu.staticHandler("static/about.html"));

@@ -1,6 +1,7 @@
 var id = null,
     players = 0,
     game = null,
+    comment_id = 0,
     durationInterval = null;
 
 function longPollForPlayerCount() {
@@ -36,6 +37,8 @@ function playGame(event) {
 			    $("#title").text("Out of time!");
 			}
 		    }, 1000);
+		comment_id = 0;
+		getComment(comment_id);
 	    }});
     $("#title").text("Waiting for partner!");
     $("#comment").text("A partner is going to come wisk you away, in just a second... just a second... please? Someone? Anyone?");
@@ -46,9 +49,21 @@ function getComment(n) {
 		data:{ game_id:game.id, question_id:n},
 		error: function() { setTimeout(function() { getComment(n); }, 1000) },
 		success: function(data) {
-		
-	    }});
-};
+		$("#comment-text").replaceWith($("<div id='comment-text'><p>" + data.question.comment + "</p></div>"));
+		var tags = "<div id='comment-tags'>";
+		for (i=0; i<data.question.tags.length; i++) {
+		    tags += "<span><a href=\""+data.question.tags[i]+"\">" + data.question.tags[i] + "</a></span>";
+		}
+		tags += "</div>";
+		$("#comment-tags").replaceWith($(tags));
+		$("a", "#comment-tags").click(function(event) {
+			event.preventDefault();
+			$.ajax({cache: false, type:"GET", url:"/comment/", dataType:"json",
+			       data:{ game_id:game.id, question_id:n, answer:this.href },
+			       success: function(data) {
+				   getComment(n+1);
+				}})});
+	    }})};
 
 function endGame() {
     $.ajax({cache: false, type:"GET", url:"/finish/", dataType:"json",
